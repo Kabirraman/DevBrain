@@ -4,6 +4,9 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
+
+	"github.com/Kabirraman/DevBrain/internal/database"
+	"github.com/Kabirraman/DevBrain/internal/models"
 )
 
 func RegisterHandler(c *gin.Context) {
@@ -76,11 +79,28 @@ func LoginHandler(c *gin.Context) {
 		Token: token,
 	})
 }
-// func MeHandler(c *gin.Context) {
+func MeHandler(c *gin.Context) {
 
-// 	userID := c.GetString("user_id")
+	userID := c.MustGet("userID")
 
-// 	c.JSON(http.StatusOK, gin.H{
-// 		"user_id": userID,
-// 	})
-// }
+	var user models.User
+
+	err := database.DB.
+		First(&user, "id = ?", userID).
+		Error
+
+	if err != nil {
+
+		c.JSON(http.StatusNotFound, gin.H{
+			"error": "user not found",
+		})
+
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"id":    user.ID,
+		"name":  user.Name,
+		"email": user.Email,
+	})
+}

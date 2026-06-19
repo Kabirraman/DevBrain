@@ -3,7 +3,6 @@ package middleware
 import (
 	"net/http"
 	"os"
-	"strings"
 
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt/v5"
@@ -25,20 +24,13 @@ func AuthMiddleware() gin.HandlerFunc {
 			return
 		}
 
-		tokenString := strings.TrimPrefix(
-			authHeader,
-			"Bearer ",
-		)
+		tokenString := authHeader[7:] // Remove "Bearer "
 
-		token, err := jwt.Parse(
-			tokenString,
-			func(token *jwt.Token) (interface{}, error) {
+		token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
 
-				return []byte(
-					os.Getenv("JWT_SECRET"),
-				), nil
-			},
-		)
+			return []byte(os.Getenv("JWT_SECRET")), nil
+
+		})
 
 		if err != nil || !token.Valid {
 
@@ -53,7 +45,7 @@ func AuthMiddleware() gin.HandlerFunc {
 		claims := token.Claims.(jwt.MapClaims)
 
 		c.Set(
-			"user_id",
+			"userID",
 			claims["user_id"],
 		)
 
