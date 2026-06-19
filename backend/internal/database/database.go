@@ -24,8 +24,9 @@ func Connect() error {
 	}
 
 	err = DB.AutoMigrate(
-		&models.User{},
-	)
+	&models.User{},
+	&models.Resource{},
+)
 
 	return err
 }

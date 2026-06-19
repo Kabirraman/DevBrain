@@ -5,7 +5,7 @@ import (
 
 	"github.com/Kabirraman/DevBrain/internal/auth"
 	"github.com/Kabirraman/DevBrain/internal/database"
-	
+	"github.com/Kabirraman/DevBrain/internal/resources"
 	"github.com/Kabirraman/DevBrain/internal/middleware"
 	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
@@ -48,6 +48,11 @@ protected.Use(
 protected.GET(
 	"/me",
 	auth.MeHandler,
+)
+
+protected.POST(
+	"/resources",
+	resources.CreateResourceHandler,
 )
 
 log.Println("Server running on :8080")

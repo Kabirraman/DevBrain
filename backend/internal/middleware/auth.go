@@ -3,7 +3,7 @@ package middleware
 import (
 	"net/http"
 	"os"
-
+	"strings"
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt/v5"
 )
@@ -24,8 +24,20 @@ func AuthMiddleware() gin.HandlerFunc {
 			return
 		}
 
-		tokenString := authHeader[7:] // Remove "Bearer "
+if !strings.HasPrefix(authHeader, "Bearer ") {
 
+	c.JSON(http.StatusUnauthorized, gin.H{
+		"error": "invalid authorization format",
+	})
+
+	c.Abort()
+	return
+}
+
+tokenString := strings.TrimPrefix(
+	authHeader,
+	"Bearer ",
+)
 		token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
 
 			return []byte(os.Getenv("JWT_SECRET")), nil
