@@ -32,3 +32,35 @@ func RegisterUser(req RegisterRequest) (*models.User, error) {
 
 	return &user, nil
 }
+
+func LoginUser(req LoginRequest) (string, error) {
+
+	var user models.User
+
+	err := database.DB.
+		Where("email = ?", req.Email).
+		First(&user).Error
+
+	if err != nil {
+		return "", err
+	}
+
+	err = bcrypt.CompareHashAndPassword(
+		[]byte(user.PasswordHash),
+		[]byte(req.Password),
+	)
+
+	if err != nil {
+		return "", err
+	}
+
+	token, err := GenerateToken(
+		user.ID.String(),
+	)
+
+	if err != nil {
+		return "", err
+	}
+
+	return token, nil
+}

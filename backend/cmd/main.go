@@ -5,6 +5,7 @@ import (
 
 	"github.com/Kabirraman/DevBrain/internal/auth"
 	"github.com/Kabirraman/DevBrain/internal/database"
+	
 
 	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
@@ -26,12 +27,30 @@ func main() {
 
 	router := gin.Default()
 
+	// Public Routes
 	router.POST(
 		"/api/auth/register",
 		auth.RegisterHandler,
 	)
 
-	log.Println("Server running on :8080")
+	router.POST(
+	"/api/auth/login",
+	auth.LoginHandler,
+)
+
+	// // Protected Routes
+	// protected := router.Group("/api")
+
+	// protected.Use(
+	// 	middleware.AuthMiddleware(),
+	// )
+
+	// protected.GET(
+	// 	"/me",
+	// 	auth.MeHandler,
+	// )
+
+	// log.Println("Server running on :8080")
 
 	router.Run(":8080")
 }
