@@ -64,6 +64,11 @@ protected.GET(
 	"/resources/:id",
 	resources.GetResourceHandler,
 )
+
+protected.POST(
+	"/resources/blog",
+	resources.ImportBlogHandler,
+)
 log.Println("Server running on :8080")
 
 	router.Run(":8080")
