@@ -30,3 +30,42 @@ func CreateResource(
 
 	return database.DB.Create(&resource).Error
 }
+
+func GetResources(userID string) ([]models.Resource, error) {
+
+	var resources []models.Resource
+
+	err := database.DB.
+		Where("user_id = ?", userID).
+		Find(&resources).
+		Error
+
+	if err != nil {
+		return nil, err
+	}
+
+	return resources, nil
+}
+
+func GetResourceByID(
+	userID string,
+	resourceID string,
+) (*models.Resource, error) {
+
+	var resource models.Resource
+
+	err := database.DB.
+		Where(
+			"id = ? AND user_id = ?",
+			resourceID,
+			userID,
+		).
+		First(&resource).
+		Error
+
+	if err != nil {
+		return nil, err
+	}
+
+	return &resource, nil
+}

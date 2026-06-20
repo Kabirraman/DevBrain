@@ -55,6 +55,15 @@ protected.POST(
 	resources.CreateResourceHandler,
 )
 
+protected.GET(
+	"/resources",
+	resources.GetResourcesHandler,
+)
+
+protected.GET(
+	"/resources/:id",
+	resources.GetResourceHandler,
+)
 log.Println("Server running on :8080")
 
 	router.Run(":8080")
