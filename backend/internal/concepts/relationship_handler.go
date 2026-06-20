@@ -9,7 +9,7 @@ import (
 	"github.com/Kabirraman/DevBrain/internal/models"
 )
 
-func ExtractConceptsHandler(c *gin.Context) {
+func ExtractRelationshipsHandler(c *gin.Context) {
 
 	var req ExtractConceptsRequest
 
@@ -37,7 +37,7 @@ func ExtractConceptsHandler(c *gin.Context) {
 		return
 	}
 
-	concepts, err := ExtractConcepts(
+	relationships, err := ExtractRelationships(
 		resource.Content,
 	)
 
@@ -50,8 +50,10 @@ func ExtractConceptsHandler(c *gin.Context) {
 		return
 	}
 
-	err = SaveConcepts(concepts)
-	
+	err = SaveRelationships(
+		relationships,
+	)
+
 	if err != nil {
 
 		c.JSON(http.StatusInternalServerError, gin.H{
@@ -62,6 +64,6 @@ func ExtractConceptsHandler(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, gin.H{
-		"concepts": concepts,
+		"relationships": relationships,
 	})
 }

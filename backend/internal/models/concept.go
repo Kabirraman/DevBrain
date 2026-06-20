@@ -10,7 +10,7 @@ import (
 type Concept struct {
 	ID        uuid.UUID `gorm:"type:uuid;primaryKey"`
 
-	Name      string `gorm:"not null"`
+	Name string `gorm:"unique;not null"`
 	Category  string
 
 	CreatedAt time.Time

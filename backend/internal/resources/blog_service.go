@@ -24,7 +24,15 @@ func ExtractBlogContent(url string) (string, string, error) {
 
 	title := doc.Find("title").Text()
 
-	content := doc.Find("body").Text()
+	content := doc.Find("main").Text()
+
+if content == "" {
+	content = doc.Find("article").Text()
+}
+
+if content == "" {
+	content = doc.Find("body").Text()
+}
 
 	return title, content, nil
 }

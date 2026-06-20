@@ -10,6 +10,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
 	"github.com/Kabirraman/DevBrain/internal/concepts"
+	"github.com/Kabirraman/DevBrain/internal/graph"
 )
 
 func main() {
@@ -74,6 +75,16 @@ protected.POST(
 protected.POST(
 	"/concepts/extract",
 	concepts.ExtractConceptsHandler,
+)
+
+protected.POST(
+	"/relationships/extract",
+	concepts.ExtractRelationshipsHandler,
+)
+
+protected.GET(
+	"/graph",
+	graph.GetGraphHandler,
 )
 log.Println("Server running on :8080")
 
