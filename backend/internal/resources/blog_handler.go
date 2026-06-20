@@ -23,6 +23,29 @@ func ImportBlogHandler(c *gin.Context) {
 		req.URL,
 	)
 
+	userID := c.MustGet("userID").(string)
+
+resourceReq := CreateResourceRequest{
+	Title:     title,
+	Type:      "blog",
+	SourceURL: req.URL,
+	Content:   content,
+}
+
+err = CreateResource(
+	userID,
+	resourceReq,
+)
+
+if err != nil {
+
+	c.JSON(http.StatusInternalServerError, gin.H{
+		"error": err.Error(),
+	})
+
+	return
+}
+
 	if err != nil {
 
 		c.JSON(http.StatusInternalServerError, gin.H{
@@ -32,8 +55,7 @@ func ImportBlogHandler(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{
-		"title":   title,
-		"content": content[:300],
-	})
+	c.JSON(http.StatusCreated, gin.H{
+	"message": "blog imported successfully",
+})
 }
