@@ -9,6 +9,7 @@ import (
 	"github.com/Kabirraman/DevBrain/internal/middleware"
 	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
+	"github.com/Kabirraman/DevBrain/internal/concepts"
 )
 
 func main() {
@@ -69,8 +70,14 @@ protected.POST(
 	"/resources/blog",
 	resources.ImportBlogHandler,
 )
+
+protected.POST(
+	"/concepts/extract",
+	concepts.ExtractConceptsHandler,
+)
 log.Println("Server running on :8080")
 
 	router.Run(":8080")
 }
+
 
