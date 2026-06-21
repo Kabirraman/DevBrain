@@ -8,6 +8,7 @@ import (
 	"github.com/Kabirraman/DevBrain/internal/resources"
 	"github.com/Kabirraman/DevBrain/internal/middleware"
 	"github.com/gin-gonic/gin"
+	"github.com/gin-contrib/cors"
 	"github.com/joho/godotenv"
 	"github.com/Kabirraman/DevBrain/internal/concepts"
 	"github.com/Kabirraman/DevBrain/internal/graph"
@@ -28,6 +29,24 @@ func main() {
 	}
 
 	router := gin.Default()
+
+	router.Use(cors.New(cors.Config{
+	AllowOrigins: []string{
+		"http://localhost:3000",
+	},
+	AllowMethods: []string{
+		"GET",
+		"POST",
+		"PUT",
+		"DELETE",
+		"OPTIONS",
+	},
+	AllowHeaders: []string{
+		"Origin",
+		"Content-Type",
+		"Authorization",
+	},
+}))
 
 	// Public Routes
 	router.POST(
