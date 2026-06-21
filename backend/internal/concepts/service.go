@@ -1,16 +1,15 @@
 package concepts
 
 import (
-	"strings"
-	"fmt"
 	"context"
 	"encoding/json"
-	"os"
+	"fmt"
 	"github.com/Kabirraman/DevBrain/internal/database"
 	"github.com/Kabirraman/DevBrain/internal/models"
 	"google.golang.org/genai"
+	"os"
+	"strings"
 )
-
 
 type ConceptResponse struct {
 	Concepts []string `json:"concepts"`
@@ -100,13 +99,13 @@ Text:
 	var result ConceptResponse
 
 	cleaned := cleanJSONResponse(
-	resp.Text(),
-)
+		resp.Text(),
+	)
 
-err = json.Unmarshal(
-	[]byte(cleaned),
-	&result,
-)
+	err = json.Unmarshal(
+		[]byte(cleaned),
+		&result,
+	)
 
 	if err != nil {
 		return nil, err
@@ -202,37 +201,55 @@ func ExtractRelationships(
 	}
 
 	prompt := `
-Extract ONLY meaningful technical relationships.
+You are building a knowledge graph.
 
-Ignore:
-- website navigation
-- cookies
-- privacy notices
-- analytics
-- legal text
-- advertisements
-- marketing content
+Extract important concepts and relationships from the text.
+The goal is to create a connected knowledge graph.
+Prefer relationships that connect concepts together.
+Avoid isolated concepts whenever possible.
 
-Good examples:
+Rules:
 
-Go -> USES -> Goroutines
+1. Return ONLY valid JSON.
+2. Create relationships between major concepts whenever hierarchy, ownership, versioning, dependency, inclusion, or usage is implied.
+3. Prefer connecting concepts instead of leaving them isolated.
+4. Use concise relationship names in UPPERCASE.
 
-Docker -> RUNS_IN -> Containers
+Examples:
 
-React -> USES -> JSX
+Go HAS_RELEASE Go 1.26
+Go PROVIDES pkg.go.dev API
+Go HAS_TOOL Playground
+Go HAS_TOOL go fix
+Go INCLUDES Standard Library
 
 Return ONLY valid JSON.
-Do NOT use markdown.
-Do NOT use triple backticks.
+Only extract relationships that are useful for learning,
+understanding, programming, software architecture,
+documentation, tooling, APIs, versions, concepts,
+frameworks, algorithms, or technical knowledge.
 
-Format:
+Ignore:
+
+- Social media accounts
+- Community links
+- Cookies
+- Navigation menus
+- Help pages
+- Download buttons
+- Contact links
+- Footer content
+- Branding links
+- Legal pages
+
+Output format:
 
 {
-  "relationships":[
+  "relationships": [
     {
-      "source":"Go",
-      "relation":"USES",
-      "target":"Goroutines"
+      "source": "Go",
+      "relation": "HAS_RELEASE",
+      "target": "Go 1.26"
     }
   ]
 }
@@ -273,6 +290,16 @@ func SaveRelationships(
 	relationships []RelationshipDTO,
 ) error {
 
+	var blacklist = map[string]bool{
+		"twitter":        true,
+		"slack":          true,
+		"mastodon":       true,
+		"bluesky":        true,
+		"help":           true,
+		"download":       true,
+		"stack overflow": true,
+	}
+
 	for _, rel := range relationships {
 
 		source := strings.TrimSpace(
@@ -286,6 +313,24 @@ func SaveRelationships(
 		target := strings.TrimSpace(
 			strings.ToLower(rel.Target),
 		)
+
+		// Skip empty values
+		if source == "" ||
+			relation == "" ||
+			target == "" {
+			continue
+		}
+
+		// Skip self-loops
+		if source == target {
+			continue
+		}
+
+		// Skip noisy concepts
+		if blacklist[source] ||
+			blacklist[target] {
+			continue
+		}
 
 		r := models.Relationship{
 			Source:   source,
