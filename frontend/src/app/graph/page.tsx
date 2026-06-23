@@ -15,6 +15,8 @@ import "reactflow/dist/style.css";
 
 export default function GraphPage() {
     const [nodes, setNodes] = useState<Node[]>([]);
+    const [selectedNode, setSelectedNode] =
+        useState<string | null>(null);
     const [edges, setEdges] = useState<Edge[]>([]);
     const [selectedConcept, setSelectedConcept] =
         useState<any>(null);
@@ -55,6 +57,7 @@ export default function GraphPage() {
             return;
         }
 
+        setSelectedNode(found.id);
         loadConcept(found.id);
 
         reactFlowInstance?.setCenter(
@@ -91,19 +94,22 @@ export default function GraphPage() {
                             },
 
                             style: {
-                                background: "#18181b",
+                                background: "rgba(24,24,27,.85)",
                                 color: "#ffffff",
-                                border:
-                                    "1px solid #27272a",
-                                borderRadius: "16px",
-                                minWidth: "180px",
-                                padding: "10px",
+                                border: "1px solid #27272a",
+                                borderRadius: "18px",
+                                minWidth: "160px",
+                                padding: "8px",
+
+                                boxShadow:
+                                    "0 8px 30px rgba(0,0,0,.35)",
                                 textAlign: "center",
                                 fontWeight: 600,
                                 fontSize: "14px",
                             },
                         })
                     );
+
 
                 const flowEdges: Edge[] =
                     graph.edges.map(
@@ -125,8 +131,8 @@ export default function GraphPage() {
                             animated: false,
 
                             style: {
-                                stroke:
-                                    "#52525b",
+                                stroke: "#3f3f46",
+                                strokeWidth: 1,
                             },
                         })
                     );
@@ -153,6 +159,77 @@ export default function GraphPage() {
         loadGraph();
     }, []);
 
+    const highlightedNodes =
+        nodes.map((node) => {
+
+            if (!selectedNode)
+                return node;
+
+            const connected =
+                edges.some(
+                    (e) =>
+                        (e.source === selectedNode &&
+                            e.target === node.id) ||
+
+                        (e.target === selectedNode &&
+                            e.source === node.id)
+                );
+
+            const selected =
+                node.id === selectedNode;
+
+            return {
+                ...node,
+
+                style: {
+                    ...node.style,
+
+                    opacity:
+                        selected || connected
+                            ? 1
+                            : 0.15,
+
+                    border:
+                        selected
+                            ? "1px solid #3b82f6"
+                            : "1px solid #27272a",
+
+                    boxShadow:
+                        selected
+                            ? "0 0 25px rgba(59,130,246,.45)"
+                            : "0 8px 30px rgba(0,0,0,.35)",
+                },
+            };
+        });
+
+    const highlightedEdges =
+        edges.map((edge) => {
+
+            const active =
+                edge.source === selectedNode ||
+                edge.target === selectedNode;
+
+            return {
+                ...edge,
+
+                style: {
+                    stroke: "#3f3f46",
+
+                    opacity:
+                        !selectedNode
+                            ? 0.35
+                            : active
+                                ? 1
+                                : 0.05,
+
+                    strokeWidth:
+                        active
+                            ? 2
+                            : 1,
+                },
+            };
+        });
+
     return (
         <div
             className="
@@ -178,7 +255,7 @@ export default function GraphPage() {
                 border
                 border-zinc-800
 
-                rounded-3xl
+                rounded-2xl
 
                 p-6
 
@@ -186,67 +263,92 @@ export default function GraphPage() {
                 "
             >
                 <h1
-                    className="
-                    text-3xl
-                    font-bold
-                    text-white
-                    "
-                >
-                    DevBrain
-                </h1>
+    className="
+    text-2xl
+    font-semibold
+    tracking-tight
+    text-white
+    "
+>
+    DevBrain
+</h1>
 
                 <p
                     className="
                     text-zinc-400
                     "
                 >
-                    Interactive Knowledge Graph
+                    Knowledge Graph Explorer
                 </p>
 
                 <div
                     className="
-                    mt-4
-                    flex
-                    gap-6
-                    "
+    mt-5
+    flex
+    gap-3
+    "
                 >
-                    <div>
+                    <div
+                        className="
+        px-4
+        py-3
+
+        rounded-2xl
+
+        bg-white/5
+
+        border
+        border-white/10
+        "
+                    >
                         <div
                             className="
-                            text-white
-                            font-bold
-                            text-xl
-                            "
+            text-white
+            font-bold
+            text-lg
+            "
                         >
                             {nodes.length}
                         </div>
 
                         <div
                             className="
-                            text-zinc-500
-                            text-sm
-                            "
+            text-zinc-400
+            text-xs
+            "
                         >
                             Concepts
                         </div>
                     </div>
 
-                    <div>
+                    <div
+                        className="
+        px-4
+        py-3
+
+        rounded-2xl
+
+        bg-white/5
+
+        border
+        border-white/10
+        "
+                    >
                         <div
                             className="
-                            text-white
-                            font-bold
-                            text-xl
-                            "
+            text-white
+            font-bold
+            text-lg
+            "
                         >
                             {edges.length}
                         </div>
 
                         <div
                             className="
-                            text-zinc-500
-                            text-sm
-                            "
+            text-zinc-400
+            text-xs
+            "
                         >
                             Relations
                         </div>
@@ -276,104 +378,136 @@ export default function GraphPage() {
                             e.target.value
                         )
                     }
-                    placeholder="Search concept..."
+                    placeholder="Search concepts, tools, releases..."
                     className="
-                    w-96
+w-[420px]
 
-                    bg-zinc-900/90
-                    backdrop-blur-xl
+h-14
 
-                    border
-                    border-zinc-800
+bg-zinc-900/80
+backdrop-blur-xl
 
-                    rounded-2xl
+border
+border-white/10
 
-                    px-5
+rounded-full
+
+px-6
+
+text-white
+
+shadow-xl
+
+outline-none
+
+
+
+
+                    
                     py-3
 
-                    text-white
 
-                    outline-none
                     "
                 />
 
                 <button
                     onClick={searchNode}
                     className="
-                    px-5
-                    py-3
+h-14
 
-                    rounded-2xl
+px-8
 
-                    bg-blue-600
-                    text-white
+rounded-full
 
-                    font-medium
-                    "
+bg-blue-600
+
+hover:bg-blue-500
+
+transition
+
+font-semibold
+
+shadow-lg
+"
                 >
                     Search
                 </button>
             </div>
 
-            <ReactFlow
-                nodes={nodes}
-                edges={edges}
-                onInit={setReactFlowInstance}
-                fitView
-                fitViewOptions={{
-                    padding: 0.3,
-                }}
-                onPaneClick={() =>
-                    setSelectedConcept(null)
-                }
-                onNodeClick={(
-                    _,
-                    node,
-                ) => {
-                    loadConcept(
-                        node.id
-                    );
-                }}
+            <div
+                className={`
+    h-full
+    transition-all
+    duration-300
+    ${selectedConcept
+                        ? "blur-[2px] opacity-60"
+                        : ""
+                    }
+    `}
             >
-                <Background
-                    gap={24}
-                    size={1}
-                    color="#27272a"
-                />
+                <ReactFlow
+                    nodes={highlightedNodes}
+                    edges={highlightedEdges}
+                    onInit={setReactFlowInstance}
+                    proOptions={{
+                        hideAttribution: true,
+                    }}
+                    fitView
+                    fitViewOptions={{
+                        padding: 0.3,
+                    }}
+                    onPaneClick={() =>
+                        setSelectedConcept(null)
+                    }
+                    onNodeClick={(_, node) => {
 
-                <Controls />
-            </ReactFlow>
+                        setSelectedNode(node.id);
 
-            {selectedConcept && (
+                        loadConcept(node.id);
+                    }}
+                >
+                    <Background
+                       gap={24}
+                       size={1}
+                       color="#3f3f46"
+                        />
+
+                    <Controls />
+                </ReactFlow>
+            </div>
+
+            {selectedConcept ? (
                 <div
                     className="
-                    absolute
+        absolute
+        top-6
+        right-6
+        bottom-6
 
-                    top-6
-                    right-6
-                    bottom-6
+        w-[520px]
 
-                    w-[420px]
+        bg-zinc-900/80
+        backdrop-blur-2xl
 
-                    z-50
+        border
+        border-white/10
 
-                    bg-zinc-900/90
-                    backdrop-blur-xl
+        rounded-2xl
 
-                    border
-                    border-zinc-800
+        p-8
 
-                    rounded-3xl
+        shadow-[0_20px_80px_rgba(0,0,0,.6)]
 
-                    p-6
+        overflow-y-auto
 
-                    overflow-y-auto
-
-                    shadow-2xl
-                    "
+        z-50
+        "
                 >
                     <div
                         className="
+                        animate-in
+slide-in-from-right
+duration-300
   flex
   items-center
   justify-between
@@ -382,7 +516,7 @@ export default function GraphPage() {
                     >
                         <h2
                             className="
-    text-3xl
+    text-2xl
     font-bold
     text-white
     "
@@ -391,35 +525,45 @@ export default function GraphPage() {
                         </h2>
 
                         <button
-                            onClick={() =>
-                                setSelectedConcept(null)
-                            }
+                            onClick={() => {
+                                setSelectedConcept(null);
+                                setSelectedNode(null);
+                            }}
                             className="
-  h-10
-  w-10
+ h-10
+w-10
 
-  rounded-full
+flex
+items-center
+justify-center
 
-  bg-zinc-800
+rounded-full
 
-  text-zinc-400
+bg-white/5
 
-  hover:bg-zinc-700
-  hover:text-white
+border
+border-white/10
 
-  transition
+text-zinc-400
+
+hover:bg-white/10
+hover:text-white
+
+transition
   "
                         >
-                            ✕
+                            ×
                         </button>
                     </div>
 
                     <div
                         className="
-                        flex
-                        flex-col
-                        gap-4
-                        "
+
+    flex
+    flex-col
+    gap-4
+    
+"
                     >
                         {selectedConcept.relationships.map(
                             (
@@ -429,15 +573,19 @@ export default function GraphPage() {
                                 <div
                                     key={index}
                                     className="
-                                    border
-                                    border-zinc-800
+bg-white/[0.03]
 
-                                    bg-zinc-900
+border
+border-white/10
 
-                                    rounded-2xl
+rounded-2xl
 
-                                    p-4
-                                    "
+p-4
+
+hover:border-blue-500/30
+
+transition
+"
                                 >
                                     <div
                                         className="
@@ -465,8 +613,10 @@ export default function GraphPage() {
 
                                             rounded-full
 
-                                            bg-blue-500/20
-                                            text-blue-300
+                                           bg-blue-500/10
+text-blue-400
+border
+border-blue-500/20
 
                                             text-xs
                                             "
@@ -491,7 +641,46 @@ export default function GraphPage() {
                         )}
                     </div>
                 </div>
-            )}
+            ) : (
+//click any node...
+    <div
+        className="
+        absolute
+
+        bottom-6
+        right-6
+
+        bg-zinc-900/80
+        backdrop-blur-xl
+
+        border
+        border-white/10
+
+        rounded-2xl
+
+        px-5
+        py-4
+
+        text-zinc-400
+        text-sm
+
+        z-50
+        "
+    >
+        <div className="flex flex-col gap-2">
+
+    <div className="text-white font-medium">
+        Explore Concepts
+    </div>
+
+    <div className="text-zinc-400 text-sm">
+        Select a node to inspect relationships
+    </div>
+
+</div>
+    </div>
+
+)}
         </div>
     );
 }
