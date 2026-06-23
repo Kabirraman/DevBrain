@@ -19,6 +19,12 @@ export default function GraphPage() {
     const [selectedConcept, setSelectedConcept] =
         useState<any>(null);
 
+    const [search, setSearch] =
+        useState("");
+
+    const [reactFlowInstance, setReactFlowInstance] =
+        useState<any>(null);
+
     async function loadConcept(
         name: string,
     ) {
@@ -37,6 +43,30 @@ export default function GraphPage() {
         }
     }
 
+    function searchNode() {
+        const found = nodes.find(
+            (n) =>
+                n.id.toLowerCase() ===
+                search.toLowerCase()
+        );
+
+        if (!found) {
+            alert("Concept not found");
+            return;
+        }
+
+        loadConcept(found.id);
+
+        reactFlowInstance?.setCenter(
+            found.position.x,
+            found.position.y,
+            {
+                zoom: 1.5,
+                duration: 800,
+            }
+        );
+    }
+
     useEffect(() => {
         async function loadGraph() {
             try {
@@ -48,37 +78,29 @@ export default function GraphPage() {
 
                 const flowNodes: Node[] =
                     graph.nodes.map(
-                        (
-                            node: any,
-                            index: number,
-                        ) => ({
+                        (node: any) => ({
                             id: node.id,
+
                             data: {
-                                label: (
-                                    <div
-                                        style={{
-                                            padding: "10px 16px",
-                                            borderRadius: "12px",
-                                            background: "#18181b",
-                                            color: "white",
-                                            border: "1px solid #27272a",
-                                            fontSize: "14px",
-                                            fontWeight: 500,
-                                            minWidth: "120px",
-                                            textAlign: "center",
-                                        }}
-                                    >
-                                        {node.id}
-                                    </div>
-                                ),
+                                label: node.id,
                             },
+
                             position: {
-                                x:
-                                    (index % 5) * 250,
-                                y:
-                                    Math.floor(
-                                        index / 5
-                                    ) * 150,
+                                x: 0,
+                                y: 0,
+                            },
+
+                            style: {
+                                background: "#18181b",
+                                color: "#ffffff",
+                                border:
+                                    "1px solid #27272a",
+                                borderRadius: "16px",
+                                minWidth: "180px",
+                                padding: "10px",
+                                textAlign: "center",
+                                fontWeight: 600,
+                                fontSize: "14px",
                             },
                         })
                     );
@@ -91,13 +113,21 @@ export default function GraphPage() {
                         ) => ({
                             id:
                                 `${edge.source}-${edge.target}-${index}`,
+
                             source:
                                 edge.source,
+
                             target:
                                 edge.target,
-                            label:
-                                edge.label,
-                            animated: true,
+
+                            label: "",
+
+                            animated: false,
+
+                            style: {
+                                stroke:
+                                    "#52525b",
+                            },
                         })
                     );
 
@@ -126,101 +156,271 @@ export default function GraphPage() {
     return (
         <div
             className="
-        flex
-        h-screen
-        bg-zinc-950
-        "
+            h-screen
+            w-screen
+            bg-zinc-950
+            relative
+            "
         >
-            <div
-                style={{
-                    position: "absolute",
-                    top: 20,
-                    left: 20,
-                    zIndex: 1000,
-                    background: "#18181b",
-                    color: "white",
-                    padding: "12px 18px",
-                    borderRadius: "12px",
-                    border: "1px solid #27272a",
-                }}
-            >
-                <div
-                    style={{
-                        fontSize: "18px",
-                        fontWeight: "bold",
-                    }}
-                >
-                    DevBrain
-                </div>
 
-                <div
-                    style={{
-                        fontSize: "12px",
-                        color: "#a1a1aa",
-                    }}
-                >
-                    Interactive Knowledge Graph
-                </div>
-            </div>
+            {/* DevBrain Card */}
+
             <div
                 className="
-        flex-1
-        "
+                absolute
+                top-6
+                left-6
+                z-50
+
+                bg-zinc-900/90
+                backdrop-blur-xl
+
+                border
+                border-zinc-800
+
+                rounded-3xl
+
+                p-6
+
+                shadow-2xl
+                "
             >
-                <ReactFlow
-                    nodes={nodes}
-                    edges={edges}
-                    fitView
-                    fitViewOptions={{
-                        padding: 0.3,
-                    }}
-                    onNodeClick={(
-                        _,
-                        node,
-                    ) => {
-                        loadConcept(
-                            node.id
-                        );
-                    }}
+                <h1
+                    className="
+                    text-3xl
+                    font-bold
+                    text-white
+                    "
                 >
-                    <Background />
-                    <Controls />
-                </ReactFlow>
+                    DevBrain
+                </h1>
+
+                <p
+                    className="
+                    text-zinc-400
+                    "
+                >
+                    Interactive Knowledge Graph
+                </p>
+
+                <div
+                    className="
+                    mt-4
+                    flex
+                    gap-6
+                    "
+                >
+                    <div>
+                        <div
+                            className="
+                            text-white
+                            font-bold
+                            text-xl
+                            "
+                        >
+                            {nodes.length}
+                        </div>
+
+                        <div
+                            className="
+                            text-zinc-500
+                            text-sm
+                            "
+                        >
+                            Concepts
+                        </div>
+                    </div>
+
+                    <div>
+                        <div
+                            className="
+                            text-white
+                            font-bold
+                            text-xl
+                            "
+                        >
+                            {edges.length}
+                        </div>
+
+                        <div
+                            className="
+                            text-zinc-500
+                            text-sm
+                            "
+                        >
+                            Relations
+                        </div>
+                    </div>
+                </div>
             </div>
+
+            {/* Search */}
+
+            <div
+                className="
+                absolute
+                top-6
+                left-1/2
+                -translate-x-1/2
+
+                z-50
+
+                flex
+                gap-3
+                "
+            >
+                <input
+                    value={search}
+                    onChange={(e) =>
+                        setSearch(
+                            e.target.value
+                        )
+                    }
+                    placeholder="Search concept..."
+                    className="
+                    w-96
+
+                    bg-zinc-900/90
+                    backdrop-blur-xl
+
+                    border
+                    border-zinc-800
+
+                    rounded-2xl
+
+                    px-5
+                    py-3
+
+                    text-white
+
+                    outline-none
+                    "
+                />
+
+                <button
+                    onClick={searchNode}
+                    className="
+                    px-5
+                    py-3
+
+                    rounded-2xl
+
+                    bg-blue-600
+                    text-white
+
+                    font-medium
+                    "
+                >
+                    Search
+                </button>
+            </div>
+
+            <ReactFlow
+                nodes={nodes}
+                edges={edges}
+                onInit={setReactFlowInstance}
+                fitView
+                fitViewOptions={{
+                    padding: 0.3,
+                }}
+                onPaneClick={() =>
+                    setSelectedConcept(null)
+                }
+                onNodeClick={(
+                    _,
+                    node,
+                ) => {
+                    loadConcept(
+                        node.id
+                    );
+                }}
+            >
+                <Background
+                    gap={24}
+                    size={1}
+                    color="#27272a"
+                />
+
+                <Controls />
+            </ReactFlow>
 
             {selectedConcept && (
                 <div
                     className="
-        w-96
-        border-l
-        border-zinc-800
-        bg-zinc-900
-        text-white
-        p-5
-        overflow-auto
-        "
-                >
+                    absolute
 
-                    <h2
+                    top-6
+                    right-6
+                    bottom-6
+
+                    w-[420px]
+
+                    z-50
+
+                    bg-zinc-900/90
+                    backdrop-blur-xl
+
+                    border
+                    border-zinc-800
+
+                    rounded-3xl
+
+                    p-6
+
+                    overflow-y-auto
+
+                    shadow-2xl
+                    "
+                >
+                    <div
                         className="
-            text-2xl
-            font-bold
-            mb-4
-            "
+  flex
+  items-center
+  justify-between
+  mb-6
+  "
                     >
-                        {
-                            selectedConcept.concept
-                        }
-                    </h2>
+                        <h2
+                            className="
+    text-3xl
+    font-bold
+    text-white
+    "
+                        >
+                            {selectedConcept.concept}
+                        </h2>
+
+                        <button
+                            onClick={() =>
+                                setSelectedConcept(null)
+                            }
+                            className="
+  h-10
+  w-10
+
+  rounded-full
+
+  bg-zinc-800
+
+  text-zinc-400
+
+  hover:bg-zinc-700
+  hover:text-white
+
+  transition
+  "
+                        >
+                            ✕
+                        </button>
+                    </div>
 
                     <div
                         className="
-            flex
-            flex-col
-            gap-3
-            "
+                        flex
+                        flex-col
+                        gap-4
+                        "
                     >
-
                         {selectedConcept.relationships.map(
                             (
                                 rel: any,
@@ -229,56 +429,69 @@ export default function GraphPage() {
                                 <div
                                     key={index}
                                     className="
-    border
-    border-zinc-700
-    bg-zinc-800
-    rounded-xl
-    p-4
-    "
-                                >
+                                    border
+                                    border-zinc-800
 
-                                    <div>
-                                        <strong>
-                                            {
-                                                rel.source
-                                            }
-                                        </strong>
+                                    bg-zinc-900
+
+                                    rounded-2xl
+
+                                    p-4
+                                    "
+                                >
+                                    <div
+                                        className="
+                                        text-white
+                                        font-semibold
+                                        "
+                                    >
+                                        {
+                                            rel.source
+                                        }
                                     </div>
 
-                                    <div>
+                                    <div
+                                        className="
+                                        mt-2
+                                        mb-2
+                                        "
+                                    >
                                         <span
                                             className="
-        inline-block
-        px-2
-        py-1
-        rounded-full
-        bg-blue-500/20
-        text-blue-300
-        text-xs
-        font-medium
-        "
+                                            inline-block
+
+                                            px-3
+                                            py-1
+
+                                            rounded-full
+
+                                            bg-blue-500/20
+                                            text-blue-300
+
+                                            text-xs
+                                            "
                                         >
-                                            {rel.relation}
+                                            {
+                                                rel.relation
+                                            }
                                         </span>
                                     </div>
 
-                                    <div>
-                                        <strong>
-                                            {
-                                                rel.target
-                                            }
-                                        </strong>
+                                    <div
+                                        className="
+                                        text-white
+                                        "
+                                    >
+                                        {
+                                            rel.target
+                                        }
                                     </div>
-
                                 </div>
                             )
                         )}
-
                     </div>
-
                 </div>
             )}
-
         </div>
     );
 }
