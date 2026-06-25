@@ -15,8 +15,11 @@ import "reactflow/dist/style.css";
 
 export default function GraphPage() {
     const [nodes, setNodes] = useState<Node[]>([]);
+    const [suggestions, setSuggestions] =
+    useState<Node[]>([]);
     const [selectedNode, setSelectedNode] =
-        useState<string | null>(null);
+              useState<string | null>(null);
+    const [focusMode, setFocusMode] = useState(false);
     const [edges, setEdges] = useState<Edge[]>([]);
     const [selectedConcept, setSelectedConcept] =
         useState<any>(null);
@@ -46,20 +49,23 @@ export default function GraphPage() {
     }
 
     function searchNode() {
-        const found = nodes.find(
-            (n) =>
-                n.id.toLowerCase() ===
-                search.toLowerCase()
-        );
+        const query = search.trim().toLowerCase();
 
-        if (!found) {
-            alert("Concept not found");
-            return;
-        }
+const found = nodes.find((node) =>
+    node.id.toLowerCase().includes(query)
+);
+
+       if (!found) {
+    return;
+}
 
         setSelectedNode(found.id);
         loadConcept(found.id);
-
+        setSuggestions([]);
+        reactFlowInstance?.fitView({
+    duration: 800,
+    padding: 0.6,
+});
         reactFlowInstance?.setCenter(
             found.position.x,
             found.position.y,
@@ -158,77 +164,106 @@ export default function GraphPage() {
 
         loadGraph();
     }, []);
+    const visibleNodeIds = new Set<string>();
 
-    const highlightedNodes =
-        nodes.map((node) => {
+if (selectedNode && focusMode) {
 
-            if (!selectedNode)
-                return node;
+    visibleNodeIds.add(selectedNode);
 
-            const connected =
-                edges.some(
-                    (e) =>
-                        (e.source === selectedNode &&
-                            e.target === node.id) ||
+    edges.forEach((edge) => {
 
-                        (e.target === selectedNode &&
-                            e.source === node.id)
-                );
+        if (edge.source === selectedNode) {
+            visibleNodeIds.add(edge.target);
+        }
 
-            const selected =
-                node.id === selectedNode;
+        if (edge.target === selectedNode) {
+            visibleNodeIds.add(edge.source);
+        }
 
-            return {
-                ...node,
+    });
 
-                style: {
-                    ...node.style,
+}
+    const highlightedNodes = nodes.map((node) => {
 
-                    opacity:
-                        selected || connected
-                            ? 1
-                            : 0.15,
+    if (!selectedNode)
+        return node;
 
-                    border:
-                        selected
-                            ? "1px solid #3b82f6"
-                            : "1px solid #27272a",
+    const connected = edges.some(
+        (e) =>
+            (e.source === selectedNode &&
+                e.target === node.id) ||
 
-                    boxShadow:
-                        selected
-                            ? "0 0 25px rgba(59,130,246,.45)"
-                            : "0 8px 30px rgba(0,0,0,.35)",
-                },
-            };
-        });
+            (e.target === selectedNode &&
+                e.source === node.id)
+    );
 
-    const highlightedEdges =
-        edges.map((edge) => {
+    const selected =
+        node.id === selectedNode;
 
-            const active =
-                edge.source === selectedNode ||
-                edge.target === selectedNode;
+    return {
+        ...node,
 
-            return {
-                ...edge,
+        style: {
+            ...node.style,
 
-                style: {
-                    stroke: "#3f3f46",
+            opacity:
+                selected || connected
+                    ? 1
+                    : 0.15,
 
-                    opacity:
-                        !selectedNode
-                            ? 0.35
-                            : active
-                                ? 1
-                                : 0.05,
+            border:
+                selected
+                    ? "1px solid #3b82f6"
+                    : "1px solid #27272a",
 
-                    strokeWidth:
-                        active
-                            ? 2
-                            : 1,
-                },
-            };
-        });
+            boxShadow:
+                selected
+                    ? "0 0 25px rgba(59,130,246,.45)"
+                    : "0 8px 30px rgba(0,0,0,.35)",
+        },
+    };
+});
+        const displayedNodes =
+    focusMode && selectedNode
+        ? highlightedNodes.filter((node) =>
+              visibleNodeIds.has(node.id)
+          )
+        : highlightedNodes;
+
+    const highlightedEdges = edges.map((edge) => {
+
+    const active =
+        edge.source === selectedNode ||
+        edge.target === selectedNode;
+
+    return {
+        ...edge,
+
+        style: {
+            stroke: "#3f3f46",
+
+            opacity:
+                !selectedNode
+                    ? 0.35
+                    : active
+                        ? 1
+                        : 0.05,
+
+            strokeWidth:
+                active
+                    ? 2
+                    : 1,
+        },
+    };
+});
+        const displayedEdges =
+    focusMode && selectedNode
+        ? highlightedEdges.filter(
+              (edge) =>
+                  visibleNodeIds.has(edge.source) &&
+                  visibleNodeIds.has(edge.target)
+          )
+        : highlightedEdges;
 
     return (
         <div
@@ -270,6 +305,7 @@ export default function GraphPage() {
     text-white
     "
 >
+
     DevBrain
 </h1>
 
@@ -371,13 +407,110 @@ export default function GraphPage() {
                 gap-3
                 "
             >
+            {suggestions.length > 0 && (
+
+    <div
+        className="
+        absolute
+        top-16
+        left-0
+        w-full
+
+        mt-2
+
+        bg-zinc-900/95
+        backdrop-blur-xl
+
+        border
+        border-zinc-800
+
+        rounded-2xl
+
+        overflow-hidden
+
+        shadow-2xl
+        "
+    >
+
+        {suggestions.map((node) => (
+
+            <button
+                key={node.id}
+
+                onClick={() => {
+
+                    setSearch(node.id);
+
+                    setSuggestions([]);
+
+                    setSelectedNode(node.id);
+
+                    loadConcept(node.id);
+
+                    reactFlowInstance?.setCenter(
+                        node.position.x,
+                        node.position.y,
+                        {
+                            zoom: 1.5,
+                            duration: 800,
+                        }
+                    );
+                }}
+
+                className="
+                w-full
+
+                px-5
+                py-3
+
+                text-left
+
+                text-white
+
+                hover:bg-zinc-800
+
+                transition
+                "
+            >
+                {node.id}
+            </button>
+
+        ))}
+
+    </div>
+
+)}
                 <input
                     value={search}
-                    onChange={(e) =>
-                        setSearch(
-                            e.target.value
-                        )
-                    }
+                    onKeyDown={(e) => {
+
+    if (e.key === "Enter") {
+
+        searchNode();
+
+        setSuggestions([]);
+    }
+
+}}
+                    onChange={(e) => {
+
+    const value = e.target.value;
+
+    setSearch(value);
+
+    if (!value.trim()) {
+        setSuggestions([]);
+        return;
+    }
+
+    const results = nodes.filter((node) =>
+        node.id
+            .toLowerCase()
+            .includes(value.toLowerCase())
+    );
+
+    setSuggestions(results.slice(0, 6));
+}}
                     placeholder="Search concepts, tools, releases..."
                     className="
 w-[420px]
@@ -409,7 +542,26 @@ outline-none
 
                     "
                 />
+                <button
+    onClick={() => setFocusMode(!focusMode)}
+    className="
+    h-14
+    px-6
+    rounded-full
 
+    bg-zinc-900
+    border
+    border-zinc-800
+
+    text-white
+
+    hover:bg-zinc-800
+
+    transition
+    "
+>
+    {focusMode ? "Full Graph" : "Focus Mode"}
+</button>
                 <button
                     onClick={searchNode}
                     className="
@@ -446,8 +598,8 @@ shadow-lg
     `}
             >
                 <ReactFlow
-                    nodes={highlightedNodes}
-                    edges={highlightedEdges}
+                    nodes={displayedNodes}
+                    edges={displayedEdges}
                     onInit={setReactFlowInstance}
                     proOptions={{
                         hideAttribution: true,
