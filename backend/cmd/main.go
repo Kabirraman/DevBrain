@@ -4,6 +4,7 @@ import (
 	"log"
 
 	"github.com/Kabirraman/DevBrain/internal/auth"
+	"github.com/Kabirraman/DevBrain/internal/chat"
 	"github.com/Kabirraman/DevBrain/internal/concepts"
 	"github.com/Kabirraman/DevBrain/internal/database"
 	"github.com/Kabirraman/DevBrain/internal/graph"
@@ -49,6 +50,7 @@ func main() {
 	}))
 
 	// Public Routes
+	
 	router.POST(
 		"/api/auth/register",
 		auth.RegisterHandler,
@@ -110,6 +112,10 @@ func main() {
 		"/graph",
 		graph.GetGraphHandler,
 	)
+	protected.POST(
+    "/chat",
+    chat.ChatHandler,
+)
 	log.Println("Server running on :8080")
 
 	router.Run(":8080")
