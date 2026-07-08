@@ -5,16 +5,17 @@ import (
 )
 
 func AskGraph(
+	userID string,
 	question string,
 ) (string, []string, error) {
 
-	concepts, err := FindRelevantConcepts(question)
+	concepts, err := FindRelevantConcepts(userID, question)
 
 if err != nil {
 	return "", nil, err
 }
 
-relationships, err := FindRelationships(concepts)
+relationships, err := FindRelationships(userID, concepts)
 
 if err != nil {
 	return "", nil, err

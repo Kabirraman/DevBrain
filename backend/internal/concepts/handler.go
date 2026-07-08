@@ -61,6 +61,19 @@ func ExtractConceptsHandler(c *gin.Context) {
 		return
 	}
 
+	err = SaveUserConcepts(resource.UserID.String(), concepts)
+
+	if err != nil {
+
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": err.Error(),
+		})
+
+		return
+	}
+
+	database.DB.Model(&resource).Update("concepts_extracted", true)
+
 	c.JSON(http.StatusOK, gin.H{
 		"concepts": concepts,
 	})

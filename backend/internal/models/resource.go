@@ -18,6 +18,8 @@ type Resource struct {
 	SourceURL string
 	Content   string `gorm:"type:text"`
 
+	ConceptsExtracted bool `gorm:"default:false"`
+
 	CreatedAt time.Time
 }
 

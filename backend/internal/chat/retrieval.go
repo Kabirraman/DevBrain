@@ -23,12 +23,35 @@ var stopWords = map[string]bool{
 }
 
 func FindRelevantConcepts(
+	userID string,
 	question string,
 ) ([]models.Concept, error) {
 
+	var userConcepts []models.UserConcept
+
+	if err := database.DB.
+		Where("user_id = ?", userID).
+		Find(&userConcepts).
+		Error; err != nil {
+		return nil, err
+	}
+
+	if len(userConcepts) == 0 {
+		return nil, nil
+	}
+
+	conceptIDs := make([]string, 0, len(userConcepts))
+
+	for _, uc := range userConcepts {
+		conceptIDs = append(conceptIDs, uc.ConceptID.String())
+	}
+
 	var concepts []models.Concept
 
-	if err := database.DB.Find(&concepts).Error; err != nil {
+	if err := database.DB.
+		Where("id IN ?", conceptIDs).
+		Find(&concepts).
+		Error; err != nil {
 		return nil, err
 	}
 
@@ -94,12 +117,13 @@ return result, nil
 
 
 func FindRelationships(
+	userID string,
 	concepts []models.Concept,
 ) ([]models.Relationship, error) {
 
 	var all []models.Relationship
 
-seen := make(map[string]bool)
+	seen := make(map[string]bool)
 
 	for _, concept := range concepts {
 
@@ -107,7 +131,8 @@ seen := make(map[string]bool)
 
 		err := database.DB.
 			Where(
-				"source = ? OR target = ?",
+				"user_id = ? AND (source = ? OR target = ?)",
+				userID,
 				strings.ToLower(concept.Name),
 				strings.ToLower(concept.Name),
 			).

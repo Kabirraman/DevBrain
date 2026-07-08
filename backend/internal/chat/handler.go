@@ -19,7 +19,9 @@ func ChatHandler(c *gin.Context) {
 		return
 	}
 
-	answer, concepts, err := AskGraph(req.Question)
+	userID := c.MustGet("userID").(string)
+
+	answer, concepts, err := AskGraph(userID, req.Question)
 
 	if err != nil {
 
